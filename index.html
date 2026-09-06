@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반짝반짝 밤하늘 계산기</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 배경 반짝이는 별들 */
+        .bg-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 계산기 컨테이너 */
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 223, 0, 0.2);
+            width: 340px;
+            z-index: 10;
+        }
+
+        /* 디스플레이 화면 */
+        .display {
+            background: rgba(15, 12, 41, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            color: #fff;
+            font-size: 2.2rem;
+            text-align: right;
+            padding: 20px;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            word-break: break-all;
+            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 버튼 그리드 */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 15px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .operator {
+            background: rgba(255, 182, 193, 0.3);
+            border-color: rgba(255, 182, 193, 0.5);
+            color: #ffccd5;
+        }
+
+        .operator:hover {
+            background: rgba(255, 182, 193, 0.5);
+        }
+
+        .equal {
+            background: rgba(135, 206, 250, 0.4);
+            border-color: rgba(135, 206, 250, 0.6);
+            grid-column: span 2;
+            color: #e0f7ff;
+        }
+
+        .equal:hover {
+            background: rgba(135, 206, 250, 0.6);
+        }
+
+        .clear {
+            background: rgba(255, 105, 180, 0.3);
+            border-color: rgba(255, 105, 180, 0.5);
+            color: #ffb6c1;
+        }
+
+        /* 클릭 시 터지는 별 효과 */
+        .click-star {
+            position: absolute;
+            pointer-events: none;
+            animation: starBurst 0.6s forwards ease-out;
+            z-index: 100;
+            font-size: 20px;
+        }
+
+        @keyframes starBurst {
+            0% {
+                transform: translate(0, 0) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(180deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.classList.add('bg-star');
+            star.style.top = Math.random() * 100 + 'vh';
+            star.style.left = Math.random() * 100 + 'vw';
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.animationDuration = (Math.random() * 3 + 1) + 's';
+            star.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(star);
+        }
+    </script>
+
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">AC</button>
+            <button onclick="appendValue('(')">(</button>
+            <button onclick="appendValue(')')">)</button>
+            <button class="operator" onclick="appendValue('/')">÷</button>
+            
+            <button onclick="appendValue('7')">7</button>
+            <button onclick="appendValue('8')">8</button>
+            <button onclick="appendValue('9')">9</button>
+            <button class="operator" onclick="appendValue('*')">×</button>
+            
+            <button onclick="appendValue('4')">4</button>
+            <button onclick="appendValue('5')">5</button>
+            <button onclick="appendValue('6')">6</button>
+            <button class="operator" onclick="appendValue('-')">-</button>
+            
+            <button onclick="appendValue('1')">1</button>
+            <button onclick="appendValue('2')">2</button>
+            <button onclick="appendValue('3')">3</button>
+            <button class="operator" onclick="appendValue('+')">+</button>
+            
+            <button onclick="appendValue('0')">0</button>
+            <button onclick="appendValue('.')">.</button>
+            <button class="equal" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        let currentInput = '0';
+
+        // Web Audio API를 이용한 맑은 별 효과음 생성
+        function playStarSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine'; // 부드러운 음색
+                // 무작위 고음역대(반짝이는 느낌)
+                osc.frequency.setValueAtTime(500 + Math.random() * 1000, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.15);
+
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {
+                // 브라우저 정책 대응
+            }
+        }
+
+        // 클릭 위치에 별 터지는 효과 생성
+        function createStarEffect(e) {
+            const rect = e.target.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            // 여러 개의 작은 별 파편 생성
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('div');
+                star.classList.add('click-star');
+                star.innerHTML = '✨';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 60 + 20;
+                const tx = Math.cos(angle) * distance + 'px';
+                const ty = Math.sin(angle) * distance + 'px';
+
+                star.style.setProperty('--tx', tx);
+                star.style.setProperty('--ty', ty);
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 600);
+            }
+        }
+
+        // 버튼 클릭 공통 핸들러
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                playStarSound();
+                createStarEffect(e);
+            });
+        });
+
+        function updateDisplay() {
+            display.innerText = currentInput;
+        }
+
+        function appendValue(value) {
+            if (currentInput === '0' && value !== '.') {
+                currentInput = value;
+            } else {
+                currentInput += value;
+            }
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                // eval 사용 시 안전한 문자열 치환 후 계산
+                let sanitized = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+                let result = eval(sanitized);
+                currentInput = String(result);
+                updateDisplay();
+            } catch (error) {
+                currentInput = '별똥별 오류! ✨';
+                updateDisplay();
+                setTimeout(() => {
+                    currentInput = '0';
+                    updateDisplay();
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
